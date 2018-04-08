@@ -55,6 +55,10 @@ Model::LoadModel(const std::string & file_path)
     }
   }
 
+  std::string material_directory = file_path.substr(0, file_path.find_last_of("\\/"));
+
+  std::cout << "Model loaded, path: " << file_path << std::endl;
+  std::cout << "Material directory: " << material_directory << std::endl;
   recursiveTextureLoad(scene, scene->mRootNode);
 }
 
@@ -136,7 +140,7 @@ Model::recursiveTextureLoad(const struct aiScene *sc, const aiNode* nd)
           std::cout << "There was an error loading the texture" << std::endl;
         }
 
-        std::cout << "texture loaded." << std::endl;
+        std::cout << "texture loaded, path: " << str->data << std::endl;
 
         texturesAndPaths[std::make_pair(nd, n)] = newTexture;
       }
