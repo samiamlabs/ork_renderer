@@ -43,6 +43,7 @@
 #include "model.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/random.hpp>
 
 #if USE_GLUT
 #include "renderer3d_impl_glut.h"
@@ -67,6 +68,30 @@ Renderer3d::~Renderer3d() {
   // again. This will definitely release the last resources allocated
   // by Assimp.
   aiDetachAllLogStreams();
+  ai_stream_->~aiLogStream();
+  // renderer_->~Renderer3dImpl();
+  // model_->~Model();
+}
+
+void Renderer3d::set_mesh_path(const std::string &mesh_path) {
+  renderer_->~Renderer3dImpl();
+  renderer_ = new Renderer3dImpl(mesh_path, 0, 0);
+}
+
+void Renderer3d::set_lighting_color(float red, float green, float blue){
+
+  GLfloat LightAmbient[] = {red, green, blue, 1.0f}; //{0.5f, 0.5f, 0.5f, 1.0f};
+
+  glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);
+
+}
+
+void Renderer3d::set_lighting_position(float x, float y, float z){
+
+  GLfloat LightPosition[] = {x, y, z, 1.0f};
+
+  glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
+
 }
 
 void Renderer3d::set_parameters(size_t width, size_t height,
@@ -101,8 +126,6 @@ void Renderer3d::set_parameters(size_t width, size_t height,
 
   // glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
   // glEnable(GL_COLOR_MATERIAL);
-
-
 
   GLfloat LightAmbient[] = {0.5f, 0.5f, 0.5f, 1.0f};
   GLfloat LightDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};

@@ -80,6 +80,14 @@ public:
   void
   lookAt(GLdouble x, GLdouble y, GLdouble z, GLdouble upx, GLdouble upy, GLdouble upz);
 
+  void set_mesh_path(const std::string &mesh_path);
+
+  void
+  set_lighting_color(float red, float green, float blue);
+
+  void
+  set_lighting_position(float x, float y, float z);
+
   /** Renders the content of the current OpenGL buffers to images
    * @param image_out the RGB image
    * @param depth_out the depth image
