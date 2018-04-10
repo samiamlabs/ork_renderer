@@ -68,14 +68,18 @@ Renderer3d::~Renderer3d() {
   // again. This will definitely release the last resources allocated
   // by Assimp.
   aiDetachAllLogStreams();
-  ai_stream_->~aiLogStream();
+  // ai_stream_->~aiLogStream();
   // renderer_->~Renderer3dImpl();
   // model_->~Model();
 }
 
-void Renderer3d::set_mesh_path(const std::string &mesh_path) {
-  renderer_->~Renderer3dImpl();
-  renderer_ = new Renderer3dImpl(mesh_path, 0, 0);
+
+void Renderer3d::set_mesh_path(const std::string & mesh_path) {
+  model_->~Model();
+  model_ = new Model();
+  model_->LoadModel(mesh_path);
+
+  scene_list_ = 0;
 }
 
 void Renderer3d::set_lighting_color(float red, float green, float blue){
@@ -110,8 +114,6 @@ void Renderer3d::set_parameters(size_t width, size_t height,
 
   // Initialize the OpenGL context
   renderer_->set_parameters_low_level();
-
-  model_->LoadModel(renderer_->mesh_path_);
 
   // Initialize the environment
   glClearColor(0.f, 0.f, 0.f, 1.f);

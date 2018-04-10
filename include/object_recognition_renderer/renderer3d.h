@@ -38,6 +38,7 @@
 #define ORK_RENDERER_RENDERER3D_H_
 
 #include <string>
+#include <vector>
 
 #include <opencv2/core/core.hpp>
 
@@ -61,10 +62,13 @@ public:
   /**
    * @param file_path the path of the mesh file
    */
-  Renderer3d(const std::string & file_path);
+  Renderer3d(const std::string & mesh_path);
 
   virtual
   ~Renderer3d();
+
+  void
+  set_mesh_path(const std::string & file_path);
 
   void
   set_parameters(size_t width, size_t height, double focal_length_x, double focal_length_y, double near, double far);
@@ -80,7 +84,6 @@ public:
   void
   lookAt(GLdouble x, GLdouble y, GLdouble z, GLdouble upx, GLdouble upy, GLdouble upz);
 
-  void set_mesh_path(const std::string &mesh_path);
 
   void
   set_lighting_color(float red, float green, float blue);
@@ -124,6 +127,7 @@ protected:
 
   /** Private implementation of the renderer (GLUT or OSMesa) */
   Renderer3dImpl* renderer_;
+
 };
 
 #endif /* ORK_RENDERER_RENDERER3D_H_ */

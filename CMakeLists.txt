@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(object_recognition_renderer)
 
+add_compile_options(-std=c++11)
+
 find_package(Boost REQUIRED)
 find_package(OpenCV REQUIRED)
 
 find_package(catkin REQUIRED)
+
 
 option(USE_GLUT "Use GLUT instead of OSMesa" OFF)
 
