@@ -56,6 +56,11 @@ class Renderer3dImpl;
 /** Class that displays a scene in a Frame Buffer Object
  * Inspired by http://www.songho.ca/opengl/gl_fbo.html
  */
+
+struct SceneBoundingBox{
+  float min_x, min_y, min_z, max_x, max_y, max_z;
+};
+
 class Renderer3d : public Renderer
 {
 public:
@@ -84,12 +89,23 @@ public:
   void
   lookAt(GLdouble x, GLdouble y, GLdouble z, GLdouble upx, GLdouble upy, GLdouble upz);
 
+  void
+  lookAt(GLdouble eye_x, GLdouble eye_y, GLdouble eye_z, GLdouble center_x, GLdouble center_y, GLdouble center_z, GLdouble up_x, GLdouble up_y, GLdouble up_z);
 
   void
   set_lighting_color(float red, float green, float blue);
 
   void
   set_lighting_position(float x, float y, float z);
+
+  void
+  get_modelview_matrix(float* matrix);
+
+  void
+  get_projection_matrix(float* matrix);
+
+  SceneBoundingBox
+  get_bounding_box();
 
   /** Renders the content of the current OpenGL buffers to images
    * @param image_out the RGB image

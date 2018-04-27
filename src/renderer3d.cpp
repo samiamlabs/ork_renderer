@@ -45,6 +45,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/random.hpp>
 
+#include <opencv2/imgproc/imgproc.hpp>
+
 #if USE_GLUT
 #include "renderer3d_impl_glut.h"
 #else
@@ -96,6 +98,14 @@ void Renderer3d::set_lighting_position(float x, float y, float z){
 
   glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);
 
+}
+
+void Renderer3d::get_modelview_matrix(float* matrix) {
+  glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+}
+
+void Renderer3d::get_projection_matrix(float* matrix) {
+  glGetFloatv(GL_PROJECTION_MATRIX, matrix);
 }
 
 void Renderer3d::set_parameters(size_t width, size_t height,
@@ -152,8 +162,31 @@ void Renderer3d::set_parameters(size_t width, size_t height,
   glViewport(0, 0, renderer_->width_, renderer_->height_);
 }
 
-void Renderer3d::lookAt(double x, double y, double z, double upx, double upy,
-                        double upz) {
+SceneBoundingBox Renderer3d::get_bounding_box() {
+  SceneBoundingBox bounding_box;
+
+  aiVector3D scene_min, scene_max, scene_center;
+  model_->get_bounding_box(&scene_min, &scene_max);
+
+  // change axies to match world coordinate system
+  bounding_box.min_x = scene_min.x;
+  bounding_box.min_y = scene_min.y;
+  bounding_box.min_z = scene_min.z;
+
+  bounding_box.max_x = scene_max.x;
+  bounding_box.max_y = scene_max.y;
+  bounding_box.max_z = scene_max.z;
+
+  return bounding_box;
+}
+
+void Renderer3d::lookAt(double x, double y, double z, double upx, double upy, double upz) {
+
+  lookAt(x, y, z, 0, 0, 0, upx, upy, upz);
+
+}
+
+void Renderer3d::lookAt(double eye_x, double eye_y, double eye_z, double center_x, double center_y, double center_z, double up_x, double up_y, double up_z) {
   renderer_->bind_buffers();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -161,23 +194,15 @@ void Renderer3d::lookAt(double x, double y, double z, double upx, double upy,
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  gluLookAt(x, y, z, 0, 0, 0, upx, upy, upz);
+  gluLookAt(eye_x, eye_y, eye_z, center_x, center_y, center_z, up_x, up_y, up_z);
 
-  // scale the whole asset to fit into our view frustum
-  aiVector3D scene_min, scene_max, scene_center;
-  model_->get_bounding_box(&scene_min, &scene_max);
-  scene_center.x = (scene_min.x + scene_max.x) / 2.0f;
-  scene_center.y = (scene_min.y + scene_max.y) / 2.0f;
-  scene_center.z = (scene_min.z + scene_max.z) / 2.0f;
-
-  // center the model
-  glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
-
-  // rotate the model (model z to scene y)
+  // rotate the model so that model z is world up (y)
   glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+  // rotate the model so that model x is aligned with world x
+  glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
 
-  // if the display list has not been made yet, create a new one and
-  // fill it with scene contents
+  // if the display list has not been created yet, make a new one and
+  // fill it with scene content
   if (scene_list_ == 0) {
     scene_list_ = glGenLists(1);
     glNewList(scene_list_, GL_COMPILE);
@@ -190,6 +215,7 @@ void Renderer3d::lookAt(double x, double y, double z, double upx, double upy,
 
   glCallList(scene_list_);
 }
+
 
 void Renderer3d::render(cv::Mat &image_out, cv::Mat &depth_out,
                         cv::Mat &mask_out, cv::Rect &rect) const {
@@ -346,7 +372,7 @@ void Renderer3d::renderDepthOnly(cv::Mat &depth_out, cv::Mat &mask_out,
 void Renderer3d::renderImageOnly(cv::Mat &image_out,
                                  const cv::Rect &rect) const {
   // Create images to copy the buffers to
-  cv::Mat_<cv::Vec3b> image(renderer_->height_, renderer_->width_);
+  cv::Mat image_bgra(renderer_->height_, renderer_->width_, CV_8UC4);
 
   glFlush();
 
@@ -355,12 +381,17 @@ void Renderer3d::renderImageOnly(cv::Mat &image_out,
 
   // Deal with the RGB image
   glReadBuffer(GL_COLOR_ATTACHMENT0);
-  glReadPixels(0, 0, renderer_->width_, renderer_->height_, GL_BGR,
-               GL_UNSIGNED_BYTE, image.ptr());
+
+  // Read BGRA to allow arbitraty renderer width.
+  // width*pixelsize must be divisable by GL_PACK_ALIGNMENT witch defaults to 4
+  glReadPixels(0, 0, renderer_->width_, renderer_->height_, GL_BGRA,
+               GL_UNSIGNED_BYTE, image_bgra.ptr());
 
   if ((rect.width <= 0) || (rect.height <= 0)) {
     image_out = cv::Mat();
   } else {
-    image(rect).copyTo(image_out);
+    cv::Mat image_bgr;
+    cv::cvtColor(image, image_bgr, cv::COLOR_BGRA2BGR);
+    image_bgr(rect).copyTo(image_out);
   }
 }
