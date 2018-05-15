@@ -369,8 +369,7 @@ void Renderer3d::renderDepthOnly(cv::Mat &depth_out, cv::Mat &mask_out,
   }
 }
 
-void Renderer3d::renderImageOnly(cv::Mat &image_out,
-                                 const cv::Rect &rect) const {
+void Renderer3d::renderImageOnly(cv::Mat &image_out, const cv::Rect &rect) const {
   // Create images to copy the buffers to
   cv::Mat image_bgra(renderer_->height_, renderer_->width_, CV_8UC4);
 
@@ -391,7 +390,7 @@ void Renderer3d::renderImageOnly(cv::Mat &image_out,
     image_out = cv::Mat();
   } else {
     cv::Mat image_bgr;
-    cv::cvtColor(image, image_bgr, cv::COLOR_BGRA2BGR);
+    cv::cvtColor(image_bgra, image_bgr, cv::COLOR_BGRA2BGR);
     image_bgr(rect).copyTo(image_out);
   }
 }

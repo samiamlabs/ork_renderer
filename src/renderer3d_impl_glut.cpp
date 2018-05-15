@@ -71,12 +71,12 @@ Renderer3dImpl::set_parameters_low_level()
 
   // Make sure glut is down
   glutExit();
-  
+
   // Initialize glut
   glutInit(&argc, argv);
 
   // By doing so, the window is not open
-  glutInitDisplayMode(GLUT_DOUBLE);
+  // glutInitDisplayMode(GLUT_DOUBLE);
   glutCreateWindow("Assimp renderer");
 
   // create a framebuffer object
